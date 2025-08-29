@@ -6,6 +6,16 @@ Additionally, it integrates **Inngest** for serverless event workflows 🚀 and 
 
 ---
 
+## 🛢️ Database Design
+
+Below is the full database design of the system, including tables for users, transactions, budgets, AI insights, and workflow events:
+
+<p align="center">
+  <img src="https://i.ibb.co/PZ0YsFr0/draw-SQL-image-export-2025-08-29.png" alt="Database Design" width="100%">
+</p>
+
+---
+
 ## ✨ Features
 
 - 💸 Track expenses and incomes in real-time  
