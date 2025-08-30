@@ -19,4 +19,7 @@ export default {
     email: process.env.EMAIL,
     app_pass: process.env.APP_PASS,
   },
+  clerk_webhook: {
+    key: process.env.CLERK_WEBHOOK_SECRET,
+  },
 };

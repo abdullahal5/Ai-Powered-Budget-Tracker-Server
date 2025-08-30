@@ -18,20 +18,10 @@ router.get(
   userController.getMyProfile
 );
 
-router.post(
-  "/create-user",
-  auth(UserRole.ADMIN, UserRole.ADMIN),
-  fileUploader.upload.single("file"),
-  (req: Request, res: Response, next: NextFunction) => {
-    // req.body = userValidation.createAdmin.parse(JSON.parse(req.body.data));
-    return userController.createUser(req, res, next);
-  }
-);
-
 router.patch(
   "/:id/status",
   auth(UserRole.ADMIN, UserRole.USER),
-//   validateRequest(userValidation.updateStatus),
+  //   validateRequest(userValidation.updateStatus),
   userController.changeProfileStatus
 );
 

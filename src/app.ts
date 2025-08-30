@@ -9,10 +9,15 @@ import cookieParser from "cookie-parser";
 import status from "http-status";
 import router from "./app/routes";
 import { globalErrorHandler } from "./app/middlewares";
+import { registerClerkWebhook } from "./app/webhooks";
+import config from "./config/config";
 
 const app: Application = express();
 app.use(cors());
 app.use(cookieParser());
+
+// Register webhook
+registerClerkWebhook(app);
 
 //parser
 app.use(express.json());
@@ -23,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
     Message: "GOOD BUDGET SERVER IS RUNNING",
   });
 });
+
 
 app.use("/api/v1", router);
 

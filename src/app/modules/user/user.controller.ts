@@ -5,16 +5,6 @@ import { IAuthUser } from "../../interface";
 import { userService } from "./user.service";
 import { userFilterableFields } from "./user.constant";
 
-const createUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await userService.createUser(req);
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: "User Created successfuly!",
-    data: result,
-  });
-});
-
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, userFilterableFields);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
@@ -58,7 +48,6 @@ const getMyProfile = catchAsync(
 );
 
 export const userController = {
-  createUser,
   getAllFromDB,
   changeProfileStatus,
   getMyProfile,

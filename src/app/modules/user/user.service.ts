@@ -1,13 +1,8 @@
 import { Prisma, UserRole } from "@prisma/client";
-import { Request } from "express";
 import { prisma } from "../../../shared/prisma";
 import { IAuthUser, IPaginationOptions } from "../../interface";
 import { userSearchAbleFields } from "./user.constant";
 import { paginationHelper } from "../../../helpers";
-
-const createUser = async (req: Request) => {
-  return "User created"
-};
 
 const getAllFromDB = async (params: any, options: IPaginationOptions) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
@@ -108,7 +103,6 @@ const getMyProfile = async (user: IAuthUser) => {
 };
 
 export const userService = {
-  createUser,
   getAllFromDB,
   changeProfileStatus,
   getMyProfile,
