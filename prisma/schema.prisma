@@ -4,22 +4,21 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url       = env("PRISMA_DATABASE_URL")
 }
 
 model User {
   id           String        @id @default(ulid())
   clerkUserId  String        @unique
   email        String        @unique
-  role         UserRole      @default(USER)
   name         String?
   imageUrl     String?
-  transactions Transaction[]
-  accounts     Account[]
-  budgets      Budget[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  role         UserRole      @default(USER)
+  accounts     Account[]
+  budgets      Budget?
+  transactions Transaction[]
 
   @@map("users")
 }
@@ -31,10 +30,10 @@ model Account {
   balance      Decimal       @default(0)
   isDefault    Boolean       @default(false)
   userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@index([userId])
   @@map("accounts")
@@ -52,11 +51,11 @@ model Transaction {
   recurringInterval RecurringInterval?
   status            TransactionStatus  @default(COMPLETED)
   userId            String
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   accountId         String
-  account           Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  account           Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([accountId])
@@ -68,9 +67,9 @@ model Budget {
   amount        Decimal
   lastAlertSent DateTime?
   userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("budgets")
 }

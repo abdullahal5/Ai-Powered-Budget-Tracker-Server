@@ -1,29 +1,25 @@
-import type { Server } from "http";
 import app from "./app";
 import config from "./config/config";
+import { prisma } from "./shared";
 
-async function main() {
-  const server: Server = app.listen(config.port, () => {
-    console.log("Sever is running on port ", config.port);
-  });
-
-  const exitHandler = () => {
-    if (server) {
-      server.close(() => {
-        console.info("Server closed!");
-      });
-    }
-    process.exit(1);
-  };
-  process.on("uncaughtException", (error) => {
-    console.log(error);
-    exitHandler();
-  });
-
-  process.on("unhandledRejection", (error) => {
-    console.log(error);
-    exitHandler();
-  });
-}
+const main = async () => {
+  try {
+    await prisma.$connect();
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+};
 
 main();
+
+// For Vercel deployment, export the app only
+export default app;
+
+// Run server locally only when NOT on Vercel
+if (process.env.VERCEL !== "1") {
+  const port = Number(config.port);
+  app.listen(port, () => {
+    console.log(`Server is running successfully on http://localhost:${port}`);
+  });
+}
