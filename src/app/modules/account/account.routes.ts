@@ -25,6 +25,6 @@ router.patch("/:id", auth(UserRole.ADMIN, UserRole.USER), accountController.upda
 
 router.patch("/default-status/:id", auth(UserRole.ADMIN, UserRole.USER), accountController.changeDefaultStatus);
 
-router.delete("/:id", auth(UserRole.ADMIN), accountController.deleteAccount);
+router.delete("/bulk-delete/:id", auth(UserRole.ADMIN, UserRole.USER), accountController.deleteAccount);
 
 export const accountRoutes = router;

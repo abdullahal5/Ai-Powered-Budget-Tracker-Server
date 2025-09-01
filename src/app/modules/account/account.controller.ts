@@ -97,7 +97,7 @@ const changeDefaultStatus = catchAsync(async (req, res) => {
 
 const deleteAccount = catchAsync(async (req, res) => {
   const { id } = req.params;
-  await accountService.deleteAccount(id);
+  await accountService.bulkDeleteAccount(id, req.body, req.user as JwtPayload);
 
   sendResponse(res, {
     statusCode: status.OK,

@@ -6,6 +6,7 @@ import { accountSearchableFields } from "./account.constant";
 import { JwtPayload } from "jsonwebtoken";
 import ApiError from "../../errors/ApiError";
 import status from "http-status";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const getAllAccounts = async (params: any, options: IPaginationOptions) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
@@ -197,8 +198,59 @@ const changeDefaultStatus = async (
   return account;
 };
 
-const deleteAccount = async (id: string) => {
-  await prisma.account.delete({ where: { id } });
+const bulkDeleteAccount = async (
+  accountId: string,
+  transactionIds: string[],
+  user: JwtPayload
+) => {
+  // 1. Verify account belongs to user
+  const findUser = await prisma.user.findUnique({
+    where: { clerkUserId: user.sub },
+    select: { id: true },
+  });
+
+  if (!findUser) {
+    throw new ApiError(status.NOT_FOUND, "User not found");
+  }
+
+  const account = await prisma.account.findFirst({
+    where: { id: accountId, userId: findUser.id },
+  });
+
+  if (!account)
+    throw new ApiError(
+      status.UNAUTHORIZED,
+      "Account not found or unauthorized"
+    );
+
+  // 2. Fetch transactions to delete
+  const transactions = await prisma.transaction.findMany({
+    where: { id: { in: transactionIds }, accountId, userId: findUser.id },
+  });
+
+  if (!transactions.length)
+    throw new ApiError(status.NOT_FOUND, "No transactions found to delete");
+
+  // 3. Update account balance
+  let balanceAdjustment: number = 0;
+  for (const tx of transactions) {
+    if (tx.type === "INCOME") balanceAdjustment -= Number(tx.amount);
+    if (tx.type === "EXPENSE") balanceAdjustment += Number(tx.amount);
+  }
+
+  const newBalance = new Decimal(account.balance).plus(balanceAdjustment);
+
+  await prisma.account.update({
+    where: { id: accountId },
+    data: { balance: newBalance },
+  });
+
+  // 4. Delete transactions
+  await prisma.transaction.deleteMany({
+    where: { id: { in: transactionIds }, accountId, userId: findUser.id },
+  });
+
+  return { deletedCount: transactions.length };
 };
 
 export const accountService = {
@@ -206,7 +258,7 @@ export const accountService = {
   getMyAccount,
   createAccount,
   updateAccount,
-  deleteAccount,
+  bulkDeleteAccount,
   changeDefaultStatus,
   getAccountWithTransactions,
 };
