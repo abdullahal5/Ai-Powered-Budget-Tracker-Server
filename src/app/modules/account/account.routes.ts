@@ -13,6 +13,12 @@ router.get(
   accountController.getMyAccount
 );
 
+router.get(
+  "/my-transaction/:id",
+  auth(UserRole.ADMIN, UserRole.USER),
+  accountController.getMyAccountWithTransaction
+);
+
 router.post("/", auth(UserRole.ADMIN, UserRole.USER), accountController.createAccount);
 
 router.patch("/:id", auth(UserRole.ADMIN, UserRole.USER), accountController.updateAccount);

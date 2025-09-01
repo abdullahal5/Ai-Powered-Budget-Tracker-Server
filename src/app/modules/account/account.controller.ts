@@ -32,6 +32,23 @@ const getMyAccount = catchAsync(async (req, res) => {
   });
 });
 
+const getMyAccountWithTransaction = catchAsync(async (req, res) => {
+  const user = req.user;
+  const { id } = req.params;
+
+  const result = await accountService.getAccountWithTransactions(
+    user as JwtPayload,
+    id
+  );
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Retrieved my account with transaction successfully!",
+    data: result,
+  });
+});
+
 const createAccount = catchAsync(async (req, res) => {
   const result = await accountService.createAccount(
     req.body,
@@ -97,4 +114,5 @@ export const accountController = {
   updateAccount,
   deleteAccount,
   changeDefaultStatus,
+  getMyAccountWithTransaction,
 };

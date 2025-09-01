@@ -78,6 +78,43 @@ const getMyAccount = async (user: JwtPayload) => {
   return findAccount;
 };
 
+const getAccountWithTransactions = async (
+  user: JwtPayload,
+  accountId: string
+) => {
+  const findUser = await prisma.user.findUnique({
+    where: {
+      clerkUserId: user.sub,
+    },
+    select: { id: true },
+  });
+
+  if (!findUser) {
+    throw new ApiError(status.NOT_FOUND, "User not found");
+  }
+
+  const findAccount = await prisma.account.findUnique({
+    where: {
+      id: accountId,
+      userId: findUser.id,
+    },
+    include: {
+      transactions: {
+        orderBy: { date: "desc" },
+      },
+      _count: {
+        select: { transactions: true },
+      },
+    },
+  });
+
+  if (!findUser) {
+    return null;
+  }
+
+  return findAccount;
+};
+
 const createAccount = async (payload: Account, user: JwtPayload) => {
   const findUser = await prisma.user.findUnique({
     where: { clerkUserId: user.sub },
@@ -171,4 +208,5 @@ export const accountService = {
   updateAccount,
   deleteAccount,
   changeDefaultStatus,
+  getAccountWithTransactions,
 };
