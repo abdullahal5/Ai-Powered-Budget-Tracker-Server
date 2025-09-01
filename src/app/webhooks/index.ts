@@ -77,6 +77,18 @@ export function registerClerkWebhook(app: Application) {
               },
             });
             console.log("User created successfully:", newUser.id);
+
+            // create default Account
+            const defaultAccount = await prisma.account.create({
+              data: {
+                name: "Default Account",
+                type: "SAVINGS",
+                balance: 0,
+                isDefault: true,
+                userId: newUser.id,
+              },
+            });
+            console.log("Default account created:", defaultAccount.id);
           } catch (createError: any) {
             console.error("Error creating user:", createError);
             // Check if it's a unique constraint violation
