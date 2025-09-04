@@ -10,7 +10,8 @@ import status from "http-status";
 import router from "./app/routes";
 import { globalErrorHandler } from "./app/middlewares";
 import { registerClerkWebhook } from "./app/webhooks";
-import config from "./config/config";
+import { serve } from "inngest/express";
+import { inngest, functions } from "./ingest";
 
 const app: Application = express();
 app.use(cors());
@@ -29,8 +30,11 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-
+// routes
 app.use("/api/v1", router);
+
+// ingest
+app.use("/api/inngest", serve({ client: inngest, functions }));
 
 app.use(globalErrorHandler);
 

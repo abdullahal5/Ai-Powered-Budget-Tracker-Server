@@ -2,7 +2,6 @@ import status from "http-status";
 import { prisma } from "../../../shared";
 import ApiError from "../../errors/ApiError";
 import { JwtPayload } from "jsonwebtoken";
-import { endOfDay, endOfMonth, startOfMonth } from "date-fns";
 
 const getCurrentBudget = async (accountId: string, user: JwtPayload) => {
   const findUser = await prisma.user.findUnique({
@@ -22,22 +21,30 @@ const getCurrentBudget = async (accountId: string, user: JwtPayload) => {
     },
   });
 
-  const now = new Date();
-  const monthStart = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+  const currentDate = new Date();
+  const startOfMonthUTC = new Date(
+    Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0)
   );
-  const monthEnd = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+  const endOfMonthUTC = new Date(
+    Date.UTC(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59
+    )
   );
 
   const expenses = await prisma.transaction.aggregate({
     where: {
       userId: findUser.id,
       type: "EXPENSE",
-      // date: {
-      //   gte: monthStart,
-      //   lte: monthEnd,
-      // },
+      date: {
+        gte: startOfMonthUTC,
+        lte: endOfMonthUTC,
+      },
       accountId,
     },
     _sum: {

@@ -1,7 +1,7 @@
 import app from "./app";
 import config from "./config/config";
 import { prisma } from "./shared";
-// import { subDays } from "date-fns";
+import { subDays } from "date-fns";
 
 const main = async () => {
   try {
