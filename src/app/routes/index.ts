@@ -3,6 +3,7 @@ import { userRoutes } from "../modules/user/user.routes";
 import { accountRoutes } from "../modules/account/account.routes";
 import { budgetRouter } from "../modules/budget/budget.routes";
 import { transactionRoutes } from "../modules/transactions/transaction.routes";
+import { geminiRoute } from "../modules/receiptScanner/gemini.routes";
 
 const router = express.Router();
 
@@ -22,6 +23,10 @@ const moduleRoutes = [
   {
     path: "/transactions",
     route: transactionRoutes,
+  },
+  {
+    path: "/gemini",
+    route: geminiRoute,
   },
 ];
 

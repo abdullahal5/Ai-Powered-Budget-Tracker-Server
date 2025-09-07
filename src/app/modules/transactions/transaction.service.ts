@@ -3,27 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 import ApiError from "../../errors/ApiError";
 import status from "http-status";
 import { prisma } from "../../../shared";
-
-function calculateNextRecurringDate(startDate: Date, interval: string) {
-  const date = new Date(startDate);
-
-  switch (interval) {
-    case "DAILY":
-      date.setDate(date.getDate() + 1);
-      break;
-    case "WEEKLY":
-      date.setDate(date.getDate() + 7);
-      break;
-    case "MONTHLY":
-      date.setMonth(date.getMonth() + 1);
-      break;
-    case "YEARLY":
-      date.setFullYear(date.getFullYear() + 1);
-      break;
-  }
-
-  return date;
-}
+import { calculateNextRecurringDate } from "../../../helpers";
 
 const createTransactionIntoDB = async (
   payload: Transaction,

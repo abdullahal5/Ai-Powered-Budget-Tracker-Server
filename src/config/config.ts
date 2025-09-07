@@ -22,4 +22,7 @@ export default {
   clerk_webhook: {
     key: process.env.CLERK_WEBHOOK_SECRET,
   },
+  gemini_key: {
+    secret: process.env.GEMINI_API_KEY,
+  },
 };
