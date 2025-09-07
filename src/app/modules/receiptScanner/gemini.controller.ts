@@ -4,10 +4,9 @@ import { GeminiService } from "./gemini.service";
 import status from "http-status";
 
 const geminiFileScanner = catchAsync(async (req, res) => {
-  console.log(req.file);
   const user = req.user;
   const result = await GeminiService.getScannedTextFromGemini(
-    req.file as unknown as File,
+    req.file as unknown as Express.Multer.File,
     user as JwtPayload
   );
 

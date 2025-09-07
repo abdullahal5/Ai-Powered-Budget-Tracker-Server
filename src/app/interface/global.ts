@@ -7,3 +7,11 @@ declare global {
     }
   }
 }
+
+
+export type Stats = {
+  totalExpenses: number;
+  totalIncome: number;
+  byCategory: Record<string, number>;
+  transactionCount: number;
+};

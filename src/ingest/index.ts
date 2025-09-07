@@ -3,6 +3,7 @@ import { prisma } from "../shared";
 import { emailSender } from "../utils/email";
 import { Transaction } from "@prisma/client";
 import { calculateNextRecurringDate } from "../helpers";
+import { Stats } from "../app/interface/global";
 
 export const inngest = new Inngest({ id: "my-app" });
 
@@ -266,8 +267,83 @@ function isTransactionDue(transaction: Transaction) {
   return nextDue <= today;
 }
 
+export const generateMonthlyReports = inngest.createFunction(
+  {
+    id: "generate-monthly-reports",
+    name: "Generate Monthly Reports",
+  },
+  {
+    cron: "0 0 1 * *",
+  },
+  async ({ step }) => {
+    const users = await step.run("fetch-users", async () => {
+      return await prisma.user.findMany({
+        include: { accounts: true },
+      });
+    });
+
+    for (const user of users) {
+      await step.run(`generate-report-${user.id}`, async () => {
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+        const stats = await getMonthlyStats(user.id, lastMonth);
+        const monthName = lastMonth.toLocaleString("default", {
+          month: "long",
+        });
+      });
+    }
+  }
+);
+
+const getMonthlyStats = async (userId: string, month: Date) => {
+  const startDate = new Date(month.getFullYear(), month.getMonth());
+  const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
+
+  const stats: Stats = transactions.reduce<Stats>(
+    (stats, t) => {
+      const amount = Number(t.amount);
+      if (t.type === "EXPENSE") {
+        stats.totalExpenses += amount;
+        stats.byCategory[t.category] =
+          (stats.byCategory[t.category] || 0) + amount;
+      } else {
+        stats.totalIncome += amount;
+      }
+      return stats;
+    },
+    {
+      totalExpenses: 0,
+      totalIncome: 0,
+      byCategory: {},
+      transactionCount: transactions.length,
+    }
+  );
+
+  stats.totalExpenses = parseFloat(stats.totalExpenses.toFixed(2));
+  stats.totalIncome = parseFloat(stats.totalIncome.toFixed(2));
+  for (const category in stats.byCategory) {
+    stats.byCategory[category] = parseFloat(
+      stats.byCategory[category].toFixed(2)
+    );
+  }
+
+  return stats;
+};
+
 export const functions = [
   checkBudgetAlert,
   processRecurringTransaction,
   triggerRecurringTransactions,
+  generateMonthlyReports,
 ];
