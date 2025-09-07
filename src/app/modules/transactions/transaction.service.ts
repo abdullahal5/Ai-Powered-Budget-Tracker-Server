@@ -64,6 +64,95 @@ const createTransactionIntoDB = async (
   return transaction;
 };
 
+const getSingleTransactionFromDB = async (id: string) => {
+  const findTransaction = await prisma.transaction.findFirst({
+    where: {
+      id,
+    },
+  });
+
+  if (!findTransaction) {
+    throw new ApiError(status.NOT_FOUND, "User not found");
+  }
+
+  return findTransaction;
+};
+
+const editTransactionIntoDB = async (
+  id: string,
+  payload: Transaction,
+  user: JwtPayload
+) => {
+  const findUser = await prisma.user.findUnique({
+    where: {
+      clerkUserId: user.sub,
+    },
+    select: { id: true },
+  });
+
+  if (!findUser) {
+    throw new ApiError(status.NOT_FOUND, "User not found");
+  }
+
+  const originalTransaction = await prisma.transaction.findUnique({
+    where: {
+      id,
+      userId: findUser.id,
+    },
+    include: {
+      account: true,
+    },
+  });
+
+  if (!originalTransaction) {
+    throw new ApiError(status.NOT_FOUND, "Transaction is not found");
+  }
+
+  const oldBalanceChange =
+    originalTransaction.type === "EXPENSE"
+      ? -Number(originalTransaction.amount)
+      : Number(originalTransaction.amount);
+
+  const newBalanceChange =
+    payload.type === "EXPENSE"
+      ? -Number(payload.amount)
+      : Number(payload.amount);
+
+  const netBalanceChange = newBalanceChange - oldBalanceChange;
+
+  const transaction = await prisma.$transaction(async (tx) => {
+    const newTransaction = await tx.transaction.update({
+      where: { id },
+      data: {
+        ...payload,
+        userId: findUser.id,
+        nextRecurringDate:
+          payload.isRecurring && payload.recurringInterval
+            ? calculateNextRecurringDate(
+                payload.date,
+                payload.recurringInterval
+              )
+            : null,
+      },
+    });
+
+    await tx.account.update({
+      where: { id: payload.accountId },
+      data: {
+        balance: {
+          increment: netBalanceChange,
+        },
+      },
+    });
+
+    return newTransaction;
+  });
+
+  return transaction;
+};
+
 export const TransactionService = {
   createTransactionIntoDB,
+  editTransactionIntoDB,
+  getSingleTransactionFromDB,
 };
